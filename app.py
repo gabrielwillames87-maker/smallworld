@@ -20,14 +20,14 @@ if not st.session_state["logged_in"]:
     senha = st.text_input("Senha", type="password")
     
     if st.button("Entrar"):
-        if usuario == "small" and senha == "world":
+        # Aqui o código verifica no cofre do Streamlit em vez de ler texto puro
+        if usuario == st.secrets["meu_usuario"] and senha == st.secrets["minha_senha"]:
             st.session_state["logged_in"] = True
             st.rerun() # Recarrega a página para liberar o app
         else:
             st.error("Usuário ou senha incorretos.")
             
     st.stop() # Bloqueia o carregamento do resto do código até logar
-
 # ==========================================================
 # CÓDIGO PRINCIPAL DO APP (Só roda se logado)
 # ==========================================================
