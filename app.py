@@ -3,14 +3,48 @@ import requests
 
 # 1. Configuração da página
 st.set_page_config(page_title="Small World Bridge Finder", layout="wide")
+
+# ==========================================================
+# SISTEMA DE LOGIN
+# ==========================================================
+# Inicializa o estado de login na memória da sessão
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+# Se não estiver logado, mostra a tela de login e para a execução do app
+if not st.session_state["logged_in"]:
+    st.title("🔒 Acesso Restrito")
+    st.write("Por favor, insira suas credenciais para acessar a ferramenta.")
+    
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    
+    if st.button("Entrar"):
+        if usuario == "small" and senha == "world":
+            st.session_state["logged_in"] = True
+            st.rerun() # Recarrega a página para liberar o app
+        else:
+            st.error("Usuário ou senha incorretos.")
+            
+    st.stop() # Bloqueia o carregamento do resto do código até logar
+
+# ==========================================================
+# CÓDIGO PRINCIPAL DO APP (Só roda se logado)
+# ==========================================================
 st.title("🃏 Small World Bridge Finder")
 st.write("Importe seu arquivo `.ydk` e descubra suas linhas de Small World!")
 
-# Cache para não estourar o limite de requisições da API
-@st.cache_data
+# Cache de 24 horas (86400 segundos) para não sobrecarregar a API
+@st.cache_data(ttl=86400)
 def fetch_card_data():
     url = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
-    response = requests.get(url).json()
+    
+    # Política de bom uso: Identificação do App
+    headers = {
+        "User-Agent": "SmallWorldBridgeFinder_Personal/1.0"
+    }
+    
+    response = requests.get(url, headers=headers).json()
     
     # Cria um dicionário mapeando o ID para os status da carta
     card_dict = {}
@@ -35,7 +69,7 @@ def fetch_card_data():
 
 all_monsters = fetch_card_data()
 
-# 2. Função para testar a condição do Small World
+# Função para testar a condição do Small World
 def check_small_world_match(c1, c2):
     matches = 0
     if c1['type'] == c2['type']: matches += 1
@@ -45,7 +79,7 @@ def check_small_world_match(c1, c2):
     if c1['def'] == c2['def'] and c1['def'] is not None: matches += 1
     return matches == 1
 
-# 3. Upload do arquivo .ydk
+# Upload do arquivo .ydk
 uploaded_file = st.file_uploader("Escolha o arquivo .ydk do YGO Omega", type=["ydk"])
 
 if uploaded_file:
@@ -69,7 +103,7 @@ if uploaded_file:
         monster_names = sorted(list(set([m['name'] for m in deck_monsters.values()])))
         
         st.write("---")
-        # --- NOVO: Escolha do modo de pesquisa ---
+        # Escolha do modo de pesquisa
         modo_pesquisa = st.radio(
             "Como você quer montar a sua rota?",
             ["👉 Tenho na mão ➡️ Quero buscar", "🎯 Quero buscar ➡️ O que preciso na mão?"]
