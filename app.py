@@ -108,7 +108,7 @@ if uploaded_file:
             for i, (target_name, data) in enumerate(grouped_targets.items()):
                 with cols[i % 4]:
                     st.image(data['img'], width=120)
-                    st.bold(target_name)
+                    st.markdown(f"**{target_name}**")
                     st.caption(f"Pontes: {', '.join(data['bridges'])}")
         else:
             st.warning("Nenhum alvo válido encontrado para essa carta com as cartas atuais do deck.")
