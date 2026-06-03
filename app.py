@@ -11,11 +11,13 @@ st.write("Importe seu arquivo `.ydk` e descubra suas linhas de Small World!")
 def fetch_card_data():
     url = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
     response = requests.get(url).json()
+    
     # Cria um dicionário mapeando o ID para os status da carta
     card_dict = {}
     for card in response['data']:
         if 'Monster' in card['type']: # Só nos interessam monstros
-            card_dict[str(card['id'])] = {
+            # Cria os status da carta
+            card_info = {
                 'name': card['name'],
                 'type': card['race'], # No YGOPRODeck, 'race' é o Tipo (ex: Warrior)
                 'attribute': card.get('attribute', ''),
@@ -24,6 +26,14 @@ def fetch_card_data():
                 'def': card.get('def', 0),
                 'image': card['card_images'][0]['image_url_small']
             }
+            
+            # Salva o ID principal da carta
+            card_dict[str(card['id'])] = card_info
+            
+            # Salva também os IDs de todas as Artes Alternativas (Alt Arts)
+            for img in card['card_images']:
+                card_dict[str(img['id'])] = card_info
+                
     return card_dict
 
 all_monsters = fetch_card_data()
